@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>{{ username }}'s Analytics Dashboard</h2>
+  <div class="stats">
+    <div><strong id="totalScans">0</strong><span>Total Scans</span></div>
+    <div><strong id="fakeScans">0</strong><span>Threats Found</span></div>
+    <div><strong id="genuineScans">0</strong><span>Genuine Ads</span></div>
+  </div>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Global Scan Trend</h3>
+    <canvas id="scanChart" height="200"></canvas>
+  </article>
+  <article class="card">
+    <h3>Recent Scan History</h3>
+    <div id="history"></div>
+  </article>
+</section>
+{% endblock %}
