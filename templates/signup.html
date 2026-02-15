@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card auth-card">
+  <h2>Sign Up</h2>
+  <form method="post" class="stack">
+    <label>Username <input type="text" name="username" required minlength="3" /></label>
+    <label>Password <input type="password" name="password" required minlength="6" /></label>
+    <button type="submit">Create Account</button>
+  </form>
+  <p>Already registered? <a href="{{ url_for('login') }}">Login</a></p>
+</section>
+{% endblock %}

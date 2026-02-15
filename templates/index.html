@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="card">
+  <h2>Welcome, {{ username }} 👋</h2>
+  <p>Paste advertisement text or upload an image for OCR-based scam detection.</p>
+</section>
+
+<section class="grid">
+  <article class="card">
+    <h3>Text Analysis</h3>
+    <textarea id="adText" rows="8" placeholder="Paste ad content here..."></textarea>
+    <button id="scanBtn">Analyze Text</button>
+  </article>
+
+  <article class="card">
+    <h3>Image OCR Analysis</h3>
+    <input id="adImage" type="file" accept="image/*" />
+    <button id="ocrBtn">Analyze Image</button>
+  </article>
+</section>
+
+<section class="card" id="resultCard" hidden>
+  <h3>Forensic Report</h3>
+  <div id="result"></div>
+</section>
+{% endblock %}
