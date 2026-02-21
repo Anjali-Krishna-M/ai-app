@@ -1,26 +1,21 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="card">
-  <h2>Welcome, {{ username }} 👋</h2>
-  <p>Paste advertisement text or upload an image for OCR-based scam detection.</p>
+  <h2>Phishing URL Detection</h2>
+  <p>Enter any URL to classify it as <strong>Phishing</strong> or <strong>Legitimate</strong>.</p>
+  <input id="urlInput" type="text" placeholder="https://example.com/login" />
+  <button id="predictBtn">Check URL</button>
 </section>
 
 <section class="grid">
-  <article class="card">
-    <h3>Text Analysis</h3>
-    <textarea id="adText" rows="8" placeholder="Paste ad content here..."></textarea>
-    <button id="scanBtn">Analyze Text</button>
+  <article class="card" id="predictionCard" hidden>
+    <h3>Prediction Result</h3>
+    <div id="predictionResult"></div>
+    <canvas id="probabilityChart" height="180"></canvas>
   </article>
-
-  <article class="card">
-    <h3>Image OCR Analysis</h3>
-    <input id="adImage" type="file" accept="image/*" />
-    <button id="ocrBtn">Analyze Image</button>
+  <article class="card" id="featureCard" hidden>
+    <h3>Top Contributing Features</h3>
+    <ul id="featureList"></ul>
   </article>
-</section>
-
-<section class="card" id="resultCard" hidden>
-  <h3>Forensic Report</h3>
-  <div id="result"></div>
 </section>
 {% endblock %}

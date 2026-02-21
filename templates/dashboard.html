@@ -1,22 +1,18 @@
 {% extends 'base.html' %}
 {% block content %}
 <section class="card">
-  <h2>{{ username }}'s Analytics Dashboard</h2>
-  <div class="stats">
-    <div><strong id="totalScans">0</strong><span>Total Scans</span></div>
-    <div><strong id="fakeScans">0</strong><span>Threats Found</span></div>
-    <div><strong id="genuineScans">0</strong><span>Genuine Ads</span></div>
-  </div>
+  <h2>Model + EDA Dashboard</h2>
+  <canvas id="modelComparisonChart" height="120"></canvas>
 </section>
 
-<section class="grid">
-  <article class="card">
-    <h3>Global Scan Trend</h3>
-    <canvas id="scanChart" height="200"></canvas>
-  </article>
-  <article class="card">
-    <h3>Recent Scan History</h3>
-    <div id="history"></div>
-  </article>
+<section class="grid plots-grid">
+  <article class="card"><h3>Class Distribution</h3><img src="{{ url_for('static', filename='plots/class_distribution.png') }}" alt="Class distribution" /></article>
+  <article class="card"><h3>URL Length Distribution</h3><img src="{{ url_for('static', filename='plots/url_length_distribution.png') }}" alt="URL length distribution" /></article>
+  <article class="card"><h3>Special Character Distribution</h3><img src="{{ url_for('static', filename='plots/special_char_distribution.png') }}" alt="Special character distribution" /></article>
+  <article class="card"><h3>Domain Length Comparison</h3><img src="{{ url_for('static', filename='plots/domain_length_distribution.png') }}" alt="Domain length" /></article>
+  <article class="card"><h3>Correlation Heatmap</h3><img src="{{ url_for('static', filename='plots/correlation_heatmap.png') }}" alt="Correlation heatmap" /></article>
+  <article class="card"><h3>Model Comparison</h3><img src="{{ url_for('static', filename='plots/model_comparison.png') }}" alt="Model comparison" /></article>
+  <article class="card"><h3>Best Model Confusion Matrix</h3><img src="{{ url_for('static', filename='plots/best_confusion_matrix.png') }}" alt="Confusion matrix" /></article>
+  <article class="card"><h3>ROC Curve</h3><img src="{{ url_for('static', filename='plots/best_roc_curve.png') }}" alt="ROC curve" /></article>
 </section>
 {% endblock %}
