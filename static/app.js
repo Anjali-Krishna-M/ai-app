@@ -1,82 +1,105 @@
-async function postJSON(url, payload) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+let probabilityChart;
+
+async function fetchJSON(url, options = {}) {
+  const res = await fetch(url, options);
   return res.json();
 }
 
-function renderResult(data) {
-  const card = document.getElementById('resultCard');
-  const result = document.getElementById('result');
-  if (!card || !result) return;
+function renderPrediction(data) {
+  const card = document.getElementById('predictionCard');
+  const featureCard = document.getElementById('featureCard');
+  if (!card) return;
 
-  const verdictClass = data.verdict === 'Fake' ? 'danger' : 'safe';
-  result.innerHTML = `
-    <p><span class="tag ${verdictClass}">${data.verdict}</span> Risk Score: <strong>${data.risk_score}%</strong></p>
-    <p>Category: <strong>${data.category}</strong></p>
-    <p>Trigger words: ${(data.trigger_words || []).map(w => `<span class="tag danger">${w}</span>`).join(' ') || '<small>No explicit red flags found.</small>'}</p>
-    <p>Safety Tips:</p>
-    <ul>${(data.tips || []).map(t => `<li>${t}</li>`).join('')}</ul>
+  const resultBox = document.getElementById('predictionResult');
+  const colorClass = data.prediction === 'Phishing' ? 'danger' : 'safe';
+
+  resultBox.innerHTML = `
+    <p><span class="tag ${colorClass}">${data.prediction}</span></p>
+    <p>Confidence: <strong>${data.confidence}%</strong></p>
+    <p>Typosquatting Alert: <strong>${data.typosquat_hint ? 'Possible domain mimic detected' : 'No mimic pattern detected'}</strong></p>
   `;
+
+  const featureList = document.getElementById('featureList');
+  featureList.innerHTML = (data.top_features || []).map(
+    (f) => `<li><strong>${f.feature}</strong>: ${f.impact.toFixed(3)}</li>`
+  ).join('');
+
   card.hidden = false;
-}
+  featureCard.hidden = false;
 
-const scanBtn = document.getElementById('scanBtn');
-if (scanBtn) {
-  scanBtn.addEventListener('click', async () => {
-    const text = document.getElementById('adText').value;
-    const data = await postJSON('/api/scan', { text });
-    renderResult(data);
-  });
-}
-
-const ocrBtn = document.getElementById('ocrBtn');
-if (ocrBtn) {
-  ocrBtn.addEventListener('click', async () => {
-    const fileInput = document.getElementById('adImage');
-    if (!fileInput.files.length) return;
-
-    const fd = new FormData();
-    fd.append('image', fileInput.files[0]);
-
-    const res = await fetch('/api/ocr-scan', { method: 'POST', body: fd });
-    const data = await res.json();
-    renderResult(data);
-  });
-}
-
-async function loadDashboard() {
-  const totalEl = document.getElementById('totalScans');
-  if (!totalEl) return;
-
-  const res = await fetch('/api/stats');
-  const data = await res.json();
-
-  document.getElementById('totalScans').textContent = data.total_scans;
-  document.getElementById('fakeScans').textContent = data.fake_scans;
-  document.getElementById('genuineScans').textContent = data.genuine_scans;
-
-  const history = document.getElementById('history');
-  history.innerHTML = (data.history || []).map((h) => `
-    <article class="card">
-      <p><strong>${h.verdict}</strong> · ${h.category} · ${(h.fake_probability * 100).toFixed(1)}%</p>
-      <small>${new Date(h.created_at).toLocaleString()}</small>
-      <p>${h.ad_text}</p>
-    </article>
-  `).join('') || '<small>No scans yet.</small>';
-
-  const ctx = document.getElementById('scanChart');
+  const ctx = document.getElementById('probabilityChart');
   if (ctx) {
-    new Chart(ctx, {
-      type: 'doughnut',
+    if (probabilityChart) probabilityChart.destroy();
+    probabilityChart = new Chart(ctx, {
+      type: 'pie',
       data: {
-        labels: ['Fake', 'Genuine'],
-        datasets: [{ data: [data.fake_scans, data.genuine_scans], backgroundColor: ['#ff6b81', '#22c55e'] }],
+        labels: ['Legitimate', 'Phishing'],
+        datasets: [{
+          data: [data.probabilities.legitimate, data.probabilities.phishing],
+          backgroundColor: ['#2ecc71', '#e74c3c'],
+        }],
+      },
+      options: {
+        plugins: {
+          legend: { position: 'bottom' },
+        },
       },
     });
   }
 }
 
-loadDashboard();
+const predictBtn = document.getElementById('predictBtn');
+if (predictBtn) {
+  predictBtn.addEventListener('click', async () => {
+    const input = document.getElementById('urlInput');
+    const url = input.value.trim();
+    if (!url) return;
+
+    const data = await fetchJSON('/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url }),
+    });
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+    renderPrediction(data);
+  });
+}
+
+async function loadModelChart() {
+  const canvas = document.getElementById('modelComparisonChart');
+  if (!canvas) return;
+
+  const data = await fetchJSON('/api/model-metrics');
+  const models = data.metrics.map((m) => m.model);
+  const f1Scores = data.metrics.map((m) => m.f1);
+  const accScores = data.metrics.map((m) => m.accuracy);
+
+  new Chart(canvas, {
+    type: 'bar',
+    data: {
+      labels: models,
+      datasets: [
+        { label: 'Accuracy', data: accScores, backgroundColor: '#2ecc71' },
+        { label: 'F1 Score', data: f1Scores, backgroundColor: '#3498db' },
+      ],
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        title: {
+          display: true,
+          text: `Best Model: ${data.best_model}`,
+        },
+      },
+      scales: {
+        y: { beginAtZero: true, max: 1 },
+      },
+    },
+  });
+}
+
+loadModelChart();
